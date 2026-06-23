@@ -427,3 +427,188 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
   .section-jump-toggle { bottom: 20px; right: 74px; width: 44px; height: 44px; }
   .shortcuts-hint { bottom: 120px; left: 16px; right: 16px; min-width: auto; }
 }
+
+/* ============================================================
+   FLOATING CASE CONTACT CTA
+   ============================================================ */
+.case-contact-cta {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: var(--accent);
+  color: #0f1117;
+  padding: 16px 12px;
+  border-radius: 8px 0 0 8px;
+  font-weight: 600;
+  font-size: 13px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 150;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 1px solid var(--accent);
+  border-right: none;
+}
+.case-contact-cta:hover {
+  background: var(--accent-hover);
+  padding: 18px 14px;
+  text-decoration: none;
+  color: #0f1117;
+}
+
+/* ============================================================
+   EVIDENCE CARD HOVER EFFECTS
+   ============================================================ */
+.evidence-card {
+  position: relative;
+  overflow: hidden;
+}
+.evidence-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.evidence-card:hover::after {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+   SEARCH IMPROVEMENTS
+   ============================================================ */
+.search-wrapper {
+  position: relative;
+}
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.search-wrapper .search-input {
+  padding-left: 38px;
+}
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
+.search-suggestions.active {
+  display: block;
+}
+.search-suggestion {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.search-suggestion:hover,
+.search-suggestion.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ============================================================
+   TIMELINE IMPROVEMENTS
+   ============================================================ */
+.timeline-item {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.timeline-item:hover {
+  border-color: var(--accent);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(96,165,250,0.1);
+}
+
+/* ============================================================
+   CARD ENHANCEMENTS
+   ============================================================ */
+.card {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   DASHBOARD CARD ENHANCEMENTS
+   ============================================================ */
+.dashboard-card {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dashboard-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   RESPONSIVE FIXES FOR NEW COMPONENTS
+   ============================================================ */
+@media (max-width: 768px) {
+  .case-contact-cta {
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+  .shortcuts-toggle, #shortcuts-toggle {
+    bottom: 80px !important;
+    left: 16px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .case-contact-cta {
+    padding: 14px 10px;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  #sidebar, #menu-toggle, #back-to-top, #section-jump-menu, 
+  #section-jump-toggle, #shortcuts-hint, #shortcuts-toggle,
+  #reading-progress, .case-contact-cta {
+    display: none !important;
+  }
+  #content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  .section {
+    display: block !important;
+    page-break-after: always;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .card {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+}

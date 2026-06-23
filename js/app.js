@@ -70,10 +70,54 @@ function initComparator(){
 }
 
 var evFilter='all',evSearch='';
+function initSearchSuggestions(){
+  var search=document.getElementById('evidence-search');
+  var suggestions=document.getElementById('search-suggestions');
+  if(!search||!suggestions)return;
+  
+  var allTags=[];
+  CASE_DATA.evidence.forEach(function(e){
+    e.tags.forEach(function(t){if(allTags.indexOf(t)===-1)allTags.push(t)});
+  });
+  
+  search.addEventListener('input',function(){
+    var q=this.value.toLowerCase();
+    if(q.length<2){suggestions.classList.remove('active');return;}
+    var matches=[];
+    CASE_DATA.evidence.forEach(function(e){
+      if(e.t.toLowerCase().indexOf(q)!==-1&&matches.indexOf(e.t)===-1)matches.push(e.t);
+      if(e.s.toLowerCase().indexOf(q)!==-1&&matches.indexOf(e.s.substring(0,60))===-1)matches.push(e.s.substring(0,60));
+    });
+    allTags.forEach(function(t){
+      if(t.toLowerCase().indexOf(q)!==-1&&matches.indexOf(t)===-1)matches.push(t);
+    });
+    if(matches.length===0){suggestions.classList.remove('active');return;}
+    suggestions.innerHTML=matches.slice(0,8).map(function(m){
+      return '<div class="search-suggestion" data-val="'+m+'">'+m+'</div>';
+    }).join('');
+    suggestions.classList.add('active');
+    suggestions.querySelectorAll('.search-suggestion').forEach(function(el){
+      el.addEventListener('click',function(){
+        search.value=this.dataset.val;
+        evSearch=this.dataset.val.toLowerCase();
+        renderEvidence();
+        suggestions.classList.remove('active');
+      });
+    });
+  });
+  
+  document.addEventListener('click',function(e){
+    if(!suggestions.contains(e.target)&&e.target!==search){
+      suggestions.classList.remove('active');
+    }
+  });
+}
+
 function initEvidence(){
   renderEvidence();
   renderTagFilters();
   renderEvStats();
+  initSearchSuggestions();
   document.getElementById('evidence-search').addEventListener('input',function(){
     evSearch=this.value.toLowerCase();
     renderEvidence();
