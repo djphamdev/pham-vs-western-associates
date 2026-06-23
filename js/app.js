@@ -169,10 +169,17 @@ function renderTagFilters(){
   var c=document.getElementById('tag-filters');
   var tags=[];
   CASE_DATA.evidence.forEach(function(e){e.tags.forEach(function(t){if(tags.indexOf(t)===-1)tags.push(t)})});
-  var jaCount=CASE_DATA.evidence.filter(function(e){return hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr)}).length;
+  var jaSignificant=CASE_DATA.evidence.filter(function(e){return hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr)}).length;
+  var translatedCount=CASE_DATA.evidence.filter(function(e){return e.translation}).length;
+  var translateableCount=CASE_DATA.evidence.filter(function(e){
+    if(!e.f)return false;
+    var lower=e.f.toLowerCase();
+    return lower.indexOf('.png')>-1||lower.indexOf('.jpg')>-1||lower.indexOf('.jpeg')>-1||lower.indexOf('.pdf')>-1;
+  }).length;
   c.innerHTML='<span class="tag-filter active" data-tag="all">All</span>'+
-    '<span class="tag-filter" data-tag="__japanese__" style="border-color:var(--warning);color:var(--warning);">🇯🇵 Japanese Only ('+jaCount+')</span>'+
-    '<span class="tag-filter" data-tag="__translated__" style="border-color:var(--success);color:var(--success);">✓ Translated ('+CASE_DATA.evidence.filter(function(e){return e.translation}).length+')</span>'+
+    '<span class="tag-filter" data-tag="__japanese__" style="border-color:var(--warning);color:var(--warning);">🇯🇵 Japanese ('+jaSignificant+')</span>'+
+    '<span class="tag-filter" data-tag="__translated__" style="border-color:var(--success);color:var(--success);">✓ Translated ('+translatedCount+')</span>'+
+    '<span class="tag-filter" data-tag="__translateable__" style="border-color:var(--accent);color:var(--accent);">🌐 All Translateable ('+translateableCount+')</span>'+
     tags.map(function(t){return'<span class="tag-filter" data-tag="'+t+'">'+t+'</span>'}).join('');
   c.querySelectorAll('.tag-filter').forEach(function(el){
     el.addEventListener('click',function(){
@@ -189,6 +196,21 @@ function hasJapanese(text){
   return/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
 }
 
+// Returns true only if text has SIGNIFICANT Japanese content
+// (more than 20 Japanese chars OR >5% of meaningful chars are Japanese)
+// This filters out email UI chrome like 受信箱/返信 that appear in screenshots
+// of English emails from a Japanese-localized email client
+function hasSignificantJapanese(text){
+  if(!text)return false;
+  var jaChars=(text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g)||[]).length;
+  if(jaChars===0)return false;
+  // Total meaningful chars (word chars + Japanese)
+  var totalChars=(text.match(/[\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g)||[]).length;
+  if(totalChars===0)return false;
+  var ratio=jaChars/totalChars;
+  return jaChars>20||ratio>0.05;
+}
+
 function highlightText(text, search){
   if(!search||!text)return text;
   var regex=new RegExp('('+search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
@@ -200,9 +222,13 @@ function renderEvidence(){
   var filtered=CASE_DATA.evidence.filter(function(e){
     var mt=true;
     if(evFilter==='__japanese__'){
-      mt=hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr);
+      mt=hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr);
     }else if(evFilter==='__translated__'){
       mt=!!e.translation;
+    }else if(evFilter==='__translateable__'){
+      if(!e.f)return false;
+      var lower=e.f.toLowerCase();
+      mt=lower.indexOf('.png')>-1||lower.indexOf('.jpg')>-1||lower.indexOf('.jpeg')>-1||lower.indexOf('.pdf')>-1;
     }else if(evFilter!=='all'){
       mt=e.tags.indexOf(evFilter)!==-1;
     }
@@ -215,14 +241,16 @@ function renderEvidence(){
   }
   g.innerHTML=filtered.map(function(e){
     var jaBadge='';
-    var hasJa=hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr);
+    var hasJa=hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr);
     if(hasJa){
       var ocrSnippet=e.ocr?e.ocr.substring(0,500).replace(/\n/g,' ').replace(/"/g,'&quot;'):'';
       jaBadge='<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="japanese-badge" style="text-decoration:none;cursor:pointer;" title="Click to translate OCR text with Google Translate" onclick="event.stopPropagation();">🇯🇵 JP · Translate</a>';
     }
+    // Build the raw GitHub URL for image translation
+    var rawImgUrl=e.f?'https://raw.githubusercontent.com/djphamdev/pham-vs-western-associates/main/'+e.f.replace(/docs\//,'').replace(/ /g,'%20'):'';
     var t=evSearch?highlightText(e.t,evSearch):e.t;
     var s=evSearch?highlightText(e.s,evSearch):e.s;
-    return'<div class="evidence-card" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+s+'</div><div class="ev-tags">'+e.tags.map(function(tg){return'<span class="ev-tag">'+tg+'</span>'}).join('')+'</div><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source File on GitHub</a></div>';
+    return'<div class="evidence-card" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+s+'</div><div class="ev-tags">'+e.tags.map(function(tg){return'<span class="ev-tag">'+tg+'</span>'}).join('')+'</div><div class="ev-actions"><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source</a>'+(e.f?'<a href="https://translate.google.com/translate?sl=ja&tl=en&u='+encodeURIComponent('https://djphamdev.github.io/pham-vs-western-associates/'+e.f)+'" target="_blank" rel="noopener" class="ev-translate-link" onclick="event.stopPropagation();" title="Open this image in Google Translate (translates text in the image)">🌐 Translate Image</a>':'')+'</div></div>';
   }).join('');
   g.querySelectorAll('.evidence-card').forEach(function(card){
     card.addEventListener('click',function(){
@@ -235,12 +263,13 @@ function renderEvidence(){
 function showModal(ev){
   var modal=document.getElementById('evidence-modal');
   var body=document.getElementById('modal-body');
-  var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;margin-bottom:8px;">Open File on GitHub</a><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
+  var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;">Open File on GitHub</a><a href="https://translate.google.com/translate?sl=ja&tl=en&u='+encodeURIComponent('https://djphamdev.github.io/pham-vs-western-associates/'+ev.f)+'" target="_blank" rel="noopener" class="btn" style="display:inline-block;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);">🖼 Translate Image</a></div><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
   var translationBlock=ev.translation?'<div class="translation-block"><h4>TRANSLATION NOTES (Japanese &rarr; English)</h4><div class="translation-content">'+ev.translation.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>':'';
   var ocrId='ocr-block-'+ev.id.replace(/[^a-zA-Z0-9]/g,'');
-  var hasJaContent=hasJapanese(ev.t)||hasJapanese(ev.s)||hasJapanese(ev.ocr);
+  var hasJaContent=hasSignificantJapanese(ev.t)||hasSignificantJapanese(ev.s)||hasSignificantJapanese(ev.ocr);
   var ocrSnippet=ev.ocr?ev.ocr.substring(0,500).replace(/\n/g,' '):'';
   var googleTranslateLink=hasJaContent?'<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="btn btn-sm" style="background:var(--accent);color:#0f1117;border-color:var(--accent);font-weight:600;margin-left:8px;">🌐 Translate OCR with Google</a>':'';
+  var imageTranslateLink=ev.f?'<a href="https://translate.google.com/translate?sl=ja&tl=en&u='+encodeURIComponent('https://djphamdev.github.io/pham-vs-western-associates/'+ev.f)+'" target="_blank" rel="noopener" class="btn btn-sm" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);margin-left:8px;">🖼 Translate Image</a>':'';
   var ocrBlock=ev.ocr?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div class="ocr-header"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin:0;">OCR Text Extraction (Japanese/English)</h4><div><button class="lang-toggle" data-ocr-id="'+ocrId+'">Open Full View</button>'+googleTranslateLink+'</div></div><pre id="'+ocrId+'" style="font-family:monospace;font-size:12px;color:var(--text-secondary);background:var(--bg-primary);padding:10px;border-radius:4px;white-space:pre-wrap;overflow-x:hidden;max-height:250px;overflow-y:auto;border:1px solid var(--border-light);">'+ev.ocr.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>':'';
   var relatedLink=ev.related?'<div style="margin-top:12px;"><strong style="color:var(--accent);">Related Evidence:</strong> <a href="'+ev.related+'" target="_blank" style="font-size:13px;">View Follow-up Document</a></div>':'';
   body.innerHTML='<h2 style="font-size:18px;margin-bottom:8px;">'+ev.t+'</h2><p style="color:var(--accent);font-size:13px;margin-bottom:16px;">'+ev.d+' &middot; '+ev.cat+'</p><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Summary</h4><p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">'+ev.s+'</p>'+relatedLink+'</div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Participants</h4><p style="font-size:14px;color:var(--text-secondary);">'+ev.p.join(', ')+'</p></div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Tags</h4><div style="display:flex;gap:4px;flex-wrap:wrap;">'+ev.tags.map(function(t){return'<span class="ev-tag">'+t+'</span>'}).join('')+'</div></div>'+translationBlock+ocrBlock+fileLink;
