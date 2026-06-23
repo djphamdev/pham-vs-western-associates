@@ -23,6 +23,7 @@
 </nav>
 <button id="menu-toggle" aria-label="Toggle menu">☰</button>
 <main id="content">
+
 <section id="home" class="section active">
   <div class="section-header">
     <h1>Ayako Yoshizawa Pham v. Western Associates Inc. &amp; Southern Star Services Ltd.</h1>
@@ -40,24 +41,23 @@
       <a href="docs/CRD%20Right%20To%20Sue%20Letter%202026.4.13_Pham_NCC%20(3).pdf" class="btn btn-sm" target="_blank">View Right-to-Sue Letter (PDF)</a>
     </div>
     <div class="card">
-      <h3>Key Allegations</h3>
-      <ul class="fact-list">
-        <li>National origin discrimination (FEHA §12940) — Japanese national treated worse than American comparator</li>
-        <li>Disparate treatment in compensation, workload, and scheduling</li>
-        <li>Disparate scrutiny of timekeeping and attendance</li>
-        <li>Direct comparator evidence: American employee in same role treated more favorably</li>
-        <li>Constructive discharge following unaddressed complaints</li>
-        <li>Failure to investigate or remediate after multiple internal complaints</li>
+      <h3>Core Allegation (FEHA §12940)</h3>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;font-style:italic;">
+        "Japanese employees, including Ayako, were held to materially different workplace standards than similarly situated American employees, resulting in disparate workload expectations, compensation disparities, heightened scrutiny, and significant emotional distress."
+      </p>
+      <ul class="fact-list" style="margin-top:12px;">
+        <li>Only <strong>two employees</strong> in this role at SSS: Ayako (Japanese) and Maria (American).</li>
+        <li>Ayako generated significantly higher profit but was paid less.</li>
+        <li>Ayako was subjected to intense scrutiny, weekend/holiday work, and aggressive micromanagement by Japanese management (Yutaka Chiba).</li>
       </ul>
     </div>
     <div class="card">
-      <h3>Why This Case May Be Significant</h3>
+      <h3>Why This Case is Actionable Now</h3>
       <ul class="fact-list">
-        <li><strong>Strong comparator evidence</strong> — direct side-by-side with same-role American employee</li>
-        <li><strong>200+ documented evidence items</strong> across 4+ years (2021-2025)</li>
-        <li><strong>Parent company involvement</strong> — Japanese parent (WAI) directing U.S. subsidiary</li>
-        <li><strong>Pattern evidence</strong> — Chiba's prior employer had similar EO lawsuit</li>
-        <li><strong>Quantified damages</strong> — wage records, profit data, performance metrics</li>
+        <li><strong>Right-to-Sue Obtained:</strong> Administrative phase complete.</li>
+        <li><strong>Imminent Closure Risk:</strong> Southern Star Services is expected to close around June 2026 (lost major contract). Immediate litigation/discovery preservation is urgent.</li>
+        <li><strong>Joint Employer Theory:</strong> Western Associates Inc. (Japan) exerted operational control over the California entity.</li>
+        <li><strong>245+ Evidentiary Items:</strong> Emails, LINE messages, timesheets, and performance records are pre-assembled and cataloged.</li>
       </ul>
     </div>
     <div class="card card-contact">
@@ -65,11 +65,12 @@
       <p><strong>Don James Pham</strong></p>
       <p>Husband of plaintiff. US citizen presenting to law firms for case evaluation.</p>
       <p>Email: <a href="mailto:don.j.pham@gmail.com">don.j.pham@gmail.com</a></p>
-      <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">All evidence files are linked and clickable. Click any evidence card to view details and access the source document.</p>
+      <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">All evidence files are linked and clickable. Click any timeline event or evidence card to view details and access the source document.</p>
       <p class="disclaimer">Evidence-driven case presentation. Not a public advocacy site.</p>
     </div>
   </div>
 </section>
+
 <section id="timeline" class="section">
   <div class="section-header"><h2>Case Timeline</h2><p class="subtitle">Chronological events from employment through CRD filing</p></div>
   <div class="timeline-controls">
@@ -81,38 +82,67 @@
   </div>
   <div class="timeline" id="timeline-container"></div>
 </section>
+
 <section id="comparator" class="section">
-  <div class="section-header"><h2>Comparator Analysis</h2><p class="subtitle">Ayako (Japanese) vs. Maria (American) — same role, different treatment</p></div>
+  <div class="section-header"><h2>Comparator Analysis</h2><p class="subtitle">Ayako (Japanese) vs. Maria (American) — same role, different rules</p></div>
   <div class="comparator-grid">
-    <div class="comparator-card plaintiff"><h3>Ayako Yoshizawa Pham (Plaintiff)</h3><p class="tag">Japanese National</p><div class="comparator-details" id="plaintiff-details"></div></div>
-    <div class="comparator-card comparator"><h3>Maria Brambila (Comparator)</h3><p class="tag">American</p><div class="comparator-details" id="comparator-details"></div></div>
+    <div class="comparator-card plaintiff">
+      <h3>Ayako Yoshizawa Pham (Plaintiff)</h3>
+      <p class="tag">Japanese National</p>
+      <div class="comparator-details" id="plaintiff-details"></div>
+    </div>
+    <div class="comparator-card comparator">
+      <h3>Maria Brambila (Comparator)</h3>
+      <p class="tag">American</p>
+      <div class="comparator-details" id="comparator-details"></div>
+    </div>
   </div>
-  <div class="card mt-24"><h3>Side-by-Side Comparison</h3><div class="table-responsive"><table class="comparison-table" id="comparison-table"></table></div></div>
+  <div class="card mt-24">
+    <h3>Side-by-Side Comparison</h3>
+    <div class="table-responsive"><table class="comparison-table" id="comparison-table"></table></div>
+  </div>
 </section>
+
 <section id="evidence" class="section">
-  <div class="section-header"><h2>Evidence Library</h2><p class="subtitle">Click any card to view details and access the linked source file</p></div>
-  <div class="evidence-controls"><input type="text" id="evidence-search" placeholder="Search evidence..." class="search-input"><div class="tag-filters" id="tag-filters"></div></div>
+  <div class="section-header"><h2>Evidence Library</h2><p class="subtitle">245 source documents available. Click any card to view details and access the linked source file.</p></div>
+  <div class="evidence-controls">
+    <input type="text" id="evidence-search" placeholder="Search evidence (e.g. 'Chiba', 'Overtime')..." class="search-input">
+    <div class="tag-filters" id="tag-filters"></div>
+  </div>
   <div class="evidence-stats" id="evidence-stats"></div>
   <div class="evidence-grid" id="evidence-grid"></div>
 </section>
+
 <section id="parent" class="section">
-  <div class="section-header"><h2>Parent Company Involvement</h2><p class="subtitle">SSS organizational structure, WAI relationship, and reporting chains</p></div>
+  <div class="section-header"><h2>Parent Company Involvement</h2><p class="subtitle">Western Associates Inc. (Japan) operational control over SSS (California)</p></div>
   <div class="card-grid" id="parent-content"></div>
 </section>
+
 <section id="distress" class="section">
-  <div class="section-header"><h2>Emotional Distress Evidence</h2><p class="subtitle">Documented impact — presented factually and professionally</p></div>
+  <div class="section-header"><h2>Emotional Distress Damages</h2><p class="subtitle">Substantial and factually documented in medical records</p></div>
   <div class="card-grid" id="distress-content"></div>
 </section>
+
 <section id="damages" class="section">
-  <div class="section-header"><h2>Damages Analysis</h2><p class="subtitle">Quantified losses across multiple categories</p></div>
+  <div class="section-header"><h2>Damages Analysis</h2><p class="subtitle">Disparate treatment financial and medical impact</p></div>
   <div class="card-grid" id="damages-content"></div>
 </section>
+
 <section id="dashboard" class="section">
   <div class="section-header"><h2>Attorney Dashboard</h2><p class="subtitle">Single-page case evaluation summary</p></div>
   <div class="dashboard-grid" id="dashboard-content"></div>
 </section>
+
 </main>
-<div id="evidence-modal" class="modal hidden"><div class="modal-overlay"></div><div class="modal-content"><button class="modal-close">&times;</button><div id="modal-body"></div></div></div>
+
+<div id="evidence-modal" class="modal hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 </body>
