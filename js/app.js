@@ -153,6 +153,12 @@ function hasJapanese(text){
   return/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
 }
 
+function highlightText(text, search){
+  if(!search||!text)return text;
+  var regex=new RegExp('('+search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return text.replace(regex,'<mark style="background:var(--warning);color:#0f1117;padding:1px 3px;border-radius:2px;">$1</mark>');
+}
+
 function renderEvidence(){
   var g=document.getElementById('evidence-grid');
   var filtered=CASE_DATA.evidence.filter(function(e){
@@ -169,7 +175,9 @@ function renderEvidence(){
     if(hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr)){
       jaBadge='<span class="japanese-badge">JP</span>';
     }
-    return'<div class="evidence-card" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+e.t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+e.s+'</div><div class="ev-tags">'+e.tags.map(function(t){return'<span class="ev-tag">'+t+'</span>'}).join('')+'</div><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source File on GitHub</a></div>';
+    var t=evSearch?highlightText(e.t,evSearch):e.t;
+    var s=evSearch?highlightText(e.s,evSearch):e.s;
+    return'<div class="evidence-card" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+s+'</div><div class="ev-tags">'+e.tags.map(function(tg){return'<span class="ev-tag">'+tg+'</span>'}).join('')+'</div><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source File on GitHub</a></div>';
   }).join('');
   g.querySelectorAll('.evidence-card').forEach(function(card){
     card.addEventListener('click',function(){
