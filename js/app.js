@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();initCTAVisibility()});
+document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar()});
 
 
 function initTopEvidence(){
@@ -47,7 +47,6 @@ function initNav(){
     document.getElementById(id).classList.add('active');
     window.scrollTo({top:0,behavior:'smooth'});
     sidebar.classList.remove('open');
-    initCTAVisibility();
   }
   links.forEach(function(l){l.addEventListener('click',function(e){navigate(e,l)})});
   toggle.addEventListener('click',function(){sidebar.classList.toggle('open')});
@@ -170,7 +169,11 @@ function renderTagFilters(){
   var c=document.getElementById('tag-filters');
   var tags=[];
   CASE_DATA.evidence.forEach(function(e){e.tags.forEach(function(t){if(tags.indexOf(t)===-1)tags.push(t)})});
-  c.innerHTML='<span class="tag-filter active" data-tag="all">All</span>'+tags.map(function(t){return'<span class="tag-filter" data-tag="'+t+'">'+t+'</span>'}).join('');
+  var jaCount=CASE_DATA.evidence.filter(function(e){return hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr)}).length;
+  c.innerHTML='<span class="tag-filter active" data-tag="all">All</span>'+
+    '<span class="tag-filter" data-tag="__japanese__" style="border-color:var(--warning);color:var(--warning);">🇯🇵 Japanese Only ('+jaCount+')</span>'+
+    '<span class="tag-filter" data-tag="__translated__" style="border-color:var(--success);color:var(--success);">✓ Translated ('+CASE_DATA.evidence.filter(function(e){return e.translation}).length+')</span>'+
+    tags.map(function(t){return'<span class="tag-filter" data-tag="'+t+'">'+t+'</span>'}).join('');
   c.querySelectorAll('.tag-filter').forEach(function(el){
     el.addEventListener('click',function(){
       c.querySelectorAll('.tag-filter').forEach(function(e){e.classList.remove('active')});
@@ -195,7 +198,14 @@ function highlightText(text, search){
 function renderEvidence(){
   var g=document.getElementById('evidence-grid');
   var filtered=CASE_DATA.evidence.filter(function(e){
-    var mt=evFilter==='all'||e.tags.indexOf(evFilter)!==-1;
+    var mt=true;
+    if(evFilter==='__japanese__'){
+      mt=hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr);
+    }else if(evFilter==='__translated__'){
+      mt=!!e.translation;
+    }else if(evFilter!=='all'){
+      mt=e.tags.indexOf(evFilter)!==-1;
+    }
     var ms=evSearch===''||e.t.toLowerCase().indexOf(evSearch)!==-1||e.s.toLowerCase().indexOf(evSearch)!==-1||e.tags.some(function(t){return t.toLowerCase().indexOf(evSearch)!==-1})||(e.ocr&&e.ocr.toLowerCase().indexOf(evSearch)!==-1);
     return mt&&ms;
   });
@@ -226,7 +236,10 @@ function showModal(ev){
   var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;margin-bottom:8px;">Open File on GitHub</a><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
   var translationBlock=ev.translation?'<div class="translation-block"><h4>TRANSLATION NOTES (Japanese &rarr; English)</h4><div class="translation-content">'+ev.translation.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>':'';
   var ocrId='ocr-block-'+ev.id.replace(/[^a-zA-Z0-9]/g,'');
-  var ocrBlock=ev.ocr?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div class="ocr-header"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin:0;">OCR Text Extraction (Japanese/English)</h4><div><button class="lang-toggle" data-ocr-id="'+ocrId+'">Open Full View</button></div></div><pre id="'+ocrId+'" style="font-family:monospace;font-size:12px;color:var(--text-secondary);background:var(--bg-primary);padding:10px;border-radius:4px;white-space:pre-wrap;overflow-x:hidden;max-height:250px;overflow-y:auto;border:1px solid var(--border-light);">'+ev.ocr.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>':'';
+  var hasJaContent=hasJapanese(ev.t)||hasJapanese(ev.s)||hasJapanese(ev.ocr);
+  var ocrSnippet=ev.ocr?ev.ocr.substring(0,500).replace(/\n/g,' '):'';
+  var googleTranslateLink=hasJaContent?'<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="btn btn-sm" style="background:var(--accent);color:#0f1117;border-color:var(--accent);font-weight:600;margin-left:8px;">🌐 Translate OCR with Google</a>':'';
+  var ocrBlock=ev.ocr?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div class="ocr-header"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin:0;">OCR Text Extraction (Japanese/English)</h4><div><button class="lang-toggle" data-ocr-id="'+ocrId+'">Open Full View</button>'+googleTranslateLink+'</div></div><pre id="'+ocrId+'" style="font-family:monospace;font-size:12px;color:var(--text-secondary);background:var(--bg-primary);padding:10px;border-radius:4px;white-space:pre-wrap;overflow-x:hidden;max-height:250px;overflow-y:auto;border:1px solid var(--border-light);">'+ev.ocr.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>':'';
   var relatedLink=ev.related?'<div style="margin-top:12px;"><strong style="color:var(--accent);">Related Evidence:</strong> <a href="'+ev.related+'" target="_blank" style="font-size:13px;">View Follow-up Document</a></div>':'';
   body.innerHTML='<h2 style="font-size:18px;margin-bottom:8px;">'+ev.t+'</h2><p style="color:var(--accent);font-size:13px;margin-bottom:16px;">'+ev.d+' &middot; '+ev.cat+'</p><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Summary</h4><p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">'+ev.s+'</p>'+relatedLink+'</div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Participants</h4><p style="font-size:14px;color:var(--text-secondary);">'+ev.p.join(', ')+'</p></div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Tags</h4><div style="display:flex;gap:4px;flex-wrap:wrap;">'+ev.tags.map(function(t){return'<span class="ev-tag">'+t+'</span>'}).join('')+'</div></div>'+translationBlock+ocrBlock+fileLink;
   modal.classList.remove('hidden');
@@ -323,7 +336,103 @@ function initDashboard(){
     return'<div class="dash-item"><strong>'+w.name+'</strong> &mdash; '+w.role+'</div>';
   }).join('')+'</div><div class="dashboard-card"><h3>Available Documents <span class="count">'+d.documents.reduce(function(a,b){var n=parseInt(b.count);return a+(isNaN(n)?0:n)},0)+'+</span></h3>'+d.documents.map(function(doc){
     return'<div class="dash-item"><strong>'+doc.count+' '+doc.type+'</strong> &mdash; '+doc.desc+'</div>';
-  }).join('')+'</div>';
+  }).join('')+'</div>'+buildLitigationTools();
+}
+
+function buildLitigationTools(){
+  // Calculate days since RTS (April 13, 2026)
+  var rtsDate=new Date('2026-04-13');
+  var today=new Date();
+  var daysSinceRts=Math.floor((today-rtsDate)/(1000*60*60*24));
+  var fehaSOL=365; // FEHA: 3 years from last act, but RTS gives 1 year to file
+  var solDeadline=new Date(rtsDate);
+  solDeadline.setDate(solDeadline.getDate()+365);
+  var daysToSOL=Math.floor((solDeadline-today)/(1000*60*60*24));
+  
+  // Count evidence items
+  var totalEvidence=CASE_DATA.evidence.length;
+  var japaneseItems=CASE_DATA.evidence.filter(function(e){return e.translation}).length;
+  
+  var html='';
+  html+='<div class="dashboard-card" style="border-color:var(--danger);"><h3>⚖️ Statute of Limitations <span class="count" style="background:rgba(239,68,68,0.15);color:var(--danger);">'+daysToSOL+'d</span></h3>';
+  html+='<div class="dash-item"><strong>RTS Issued:</strong> April 13, 2026 (Case #202508-30598105)</div>';
+  html+='<div class="dash-item"><strong>Days Since RTS:</strong> '+daysSinceRts+' days</div>';
+  html+='<div class="dash-item"><strong>FEHA Filing Deadline:</strong> '+solDeadline.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})+'</div>';
+  html+='<div class="dash-item" style="color:var(--danger);font-weight:600;"><strong>Days Remaining to File:</strong> '+daysToSOL+' days</div>';
+  html+='<div class="dash-item" style="font-size:12px;color:var(--text-muted);margin-top:8px;"><em>Note: FEHA requires filing within 1 year of RTS. SSS expected closure June 2026 adds spoliation urgency.</em></div>';
+  html+='</div>';
+  
+  html+='<div class="dashboard-card" style="border-color:var(--success);"><h3>✅ Pre-Litigation Checklist</h3>';
+  html+='<div class="dash-item">☑ Right-to-Sue obtained (April 13, 2026)</div>';
+  html+='<div class="dash-item">☑ CRD administrative phase complete</div>';
+  html+='<div class="dash-item">☑ Comparator identified and documented</div>';
+  html+='<div class="dash-item">☑ '+totalEvidence+' evidence items catalogued</div>';
+  html+='<div class="dash-item">☑ '+japaneseItems+' Japanese-text items with translation notes</div>';
+  html+='<div class="dash-item">☑ Source files hosted on GitHub (permanently accessible)</div>';
+  html+='<div class="dash-item">☐ Document preservation letter to SSS (recommended before June 2026 closure)</div>';
+  html+='<div class="dash-item">☐ Litigation hold notice to WAI (Japan parent)</div>';
+  html+='<div class="dash-item">☐ Subpoena preparation for SSS records</div>';
+  html+='<div class="dash-item">☐ Kaiser medical records subpoena (emotional distress damages)</div>';
+  html+='</div>';
+  
+  html+='<div class="dashboard-card"><h3>📋 Case Index Download</h3>';
+  html+='<div class="dash-item">Download full evidence index as CSV for case management systems.</div>';
+  html+='<button class="btn btn-sm" style="margin-top:8px;background:var(--accent);color:#0f1117;border-color:var(--accent);font-weight:600;" onclick="downloadCaseIndex()">⬇ Download Evidence Index (CSV)</button>';
+  html+='<button class="btn btn-sm" style="margin-top:8px;margin-left:8px;" onclick="downloadCaseIndexJSON()">⬇ Download Evidence Index (JSON)</button>';
+  html+='</div>';
+  
+  html+='<div class="dashboard-card"><h3>🔗 Quick Reference Links</h3>';
+  html+='<div class="dash-item"><strong>FEHA §12940:</strong> <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=GOV&sectionNum=12940" target="_blank">California Fair Employment and Housing Act</a></div>';
+  html+='<div class="dash-item"><strong>CRD (DFEH):</strong> <a href="https://calcivilrights.ca.gov/" target="_blank">Civil Rights Department</a></div>';
+  html+='<div class="dash-item"><strong>Joint Employer:</strong> <a href="https://www.dol.gov/agencies/whd/fact-sheets/46-joint-employment" target="_blank">DOL Joint Employer Standard</a></div>';
+  html+='<div class="dash-item"><strong>Google Drive:</strong> <a href="https://drive.google.com/drive/folders/1CJOcD0EBi4aH5IV2SbcZsEMtMlpxJhhZ?usp=sharing" target="_blank">Full Document Library</a></div>';
+  html+='<div class="dash-item"><strong>GitHub Repo:</strong> <a href="https://github.com/djphamdev/pham-vs-western-associates" target="_blank">pham-vs-western-associates</a></div>';
+  html+='</div>';
+  
+  return html;
+}
+
+function downloadCaseIndex(){
+  var rows=[['ID','Title','Date','Category','Summary','Has_OCR','Has_Translation','File','Tags']];
+  CASE_DATA.evidence.forEach(function(e){
+    rows.push([
+      e.id,
+      '"'+(e.t||'').replace(/"/g,'""')+'"',
+      e.d||'',
+      e.cat||'',
+      '"'+(e.s||'').replace(/"/g,'""')+'"',
+      e.ocr?'Y':'',
+      e.translation?'Y':'',
+      e.f||'',
+      '"'+(e.tags||[]).join('; ')+'"'
+    ]);
+  });
+  var csv=rows.map(function(r){return r.join(',')}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='Pham-v-Western-Associates-Evidence-Index-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadCaseIndexJSON(){
+  var data={
+    case:'Pham v. Western Associates Inc.',
+    crdCase:CASE_DATA.meta.crd_case,
+    rtsDate:CASE_DATA.meta.rts_date,
+    generated:new Date().toISOString(),
+    evidenceCount:CASE_DATA.evidence.length,
+    items:CASE_DATA.evidence.map(function(e){return{id:e.id,title:e.t,date:e.d,category:e.cat,summary:e.s,tags:e.tags,file:e.f,hasOCR:!!e.ocr,hasTranslation:!!e.translation}})
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='Pham-v-Western-Associates-Evidence-Index-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function initBackToTop(){
@@ -409,14 +518,4 @@ function initProgressBar(){
     var progress=winHeight>0?(window.scrollY/winHeight):0;
     bar.style.transform='scaleX('+progress+')';
   });
-}
-
-function initCTAVisibility(){
-  var ctaHome=document.getElementById('cta-home');
-  var ctaDashboard=document.getElementById('cta-dashboard');
-  var activeSection=document.querySelector('.section.active');
-  if(!activeSection) return;
-  var activeId=activeSection.id;
-  if(ctaHome) ctaHome.style.display = (activeId==='home') ? 'block' : 'none';
-  if(ctaDashboard) ctaDashboard.style.display = (activeId==='dashboard') ? 'inline-block' : 'none';
 }

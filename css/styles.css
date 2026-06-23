@@ -387,34 +387,47 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 }
 
 /* ============================================================
-   FLOATING CASE CONTACT CTA
+   MODULE FOOTER (Discuss/Print buttons at end of sections)
    ============================================================ */
-.case-contact-cta {
-  position: fixed;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
+.module-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.module-footer .btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+.module-footer .btn:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.module-footer .btn-primary {
   background: var(--accent);
   color: #0f1117;
-  padding: 16px 12px;
-  border-radius: 8px 0 0 8px;
-  font-weight: 600;
-  font-size: 13px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 150;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: 1px solid var(--accent);
-  border-right: none;
+  border-color: var(--accent);
 }
-.case-contact-cta:hover {
+.module-footer .btn-primary:hover {
   background: var(--accent-hover);
-  padding: 18px 14px;
-  text-decoration: none;
-  color: #0f1117;
+  border-color: var(--accent-hover);
+}
+
+/* ============================================================
+   FLOATING CASE CONTACT CTA (removed - kept for legacy)
+   ============================================================ */
+.case-contact-cta {
+  display: none;
 }
 
 /* ============================================================
