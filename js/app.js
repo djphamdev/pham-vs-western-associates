@@ -1,4 +1,48 @@
-document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();initShortcutsHint()});
+document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();initShortcutsHint();initTopEvidence();initPrintSummary()});
+
+
+function initTopEvidence(){
+  var grid=document.getElementById('top-evidence-grid');
+  if(!grid)return;
+  var priorityKeywords={
+    'Unfair':3,'Missing':2,'Selfish':4,'Rude':2,'Sunday':2,'Holiday':2,
+    'Micro':3,'Aggressive':4,'Title':2,'Raise':3,'Remote':2,'selfish':4
+  };
+  var scored=CASE_DATA.evidence.map(function(e){
+    var score=0;
+    var txt=(e.t+' '+e.s).toLowerCase();
+    Object.keys(priorityKeywords).forEach(function(k){
+      if(txt.indexOf(k.toLowerCase())!==-1)score+=priorityKeywords[k];
+    });
+    if(e.ocr)score+=1;
+    if(e.translation)score+=2;
+    return Object.assign({score:score},e);
+  });
+  var top10=scored.sort(function(a,b){return b.score-a.score}).slice(0,10);
+  grid.innerHTML=top10.map(function(e,i){
+    return '<div class="card" data-id="'+e.id+'" onclick="openEvidenceById(\''+e.id+'\')" style="cursor:pointer;"><div class="top-evidence-rank">#'+(i+1)+'</div><div class="ev-title" style="margin-top:8px;">'+(e.t.length>60?e.t.substring(0,57)+'...':e.t)+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+(e.s.length>140?e.s.substring(0,137)+'...':e.s)+'</div></div>';
+  }).join('');
+}
+
+function openEvidenceById(id){
+  var ev=CASE_DATA.evidence.find(function(e){return e.id===id});
+  if(!ev)return;
+  var navLink=document.querySelector('.nav-links a[href="#evidence"]');
+  if(navLink)navLink.click();
+  setTimeout(function(){showModal(ev);},200);
+}
+
+function initPrintSummary(){
+  var btn=document.createElement('button');
+  btn.id='print-summary-btn';
+  btn.textContent='Print Case Summary';
+  btn.setAttribute('type','button');
+  btn.style.cssText='position:fixed;top:80px;right:30px;background:var(--bg-secondary);border:1px solid var(--accent);color:var(--accent);padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;z-index:198;box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:all 0.2s ease;';
+  document.body.appendChild(btn);
+  btn.addEventListener('click',function(){window.print()});
+  btn.addEventListener('mouseenter',function(){btn.style.background='var(--accent)';btn.style.color='#0f1117';});
+  btn.addEventListener('mouseleave',function(){btn.style.background='var(--bg-secondary)';btn.style.color='var(--accent)';});
+}
 
 function initNav(){
   var links=document.querySelectorAll('.nav-links a');

@@ -682,3 +682,17 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 .nav-links a {
   position: relative;
 }
+
+/* ============================================================
+   TOP EVIDENCE RANK
+   ============================================================ */
+.top-evidence-rank {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: #0f1117;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
