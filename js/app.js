@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();initShortcutsHint();initTopEvidence();initPrintSummary()});
+document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();initCTAVisibility()});
 
 
 function initTopEvidence(){
@@ -32,18 +32,6 @@ function openEvidenceById(id){
   setTimeout(function(){showModal(ev);},200);
 }
 
-function initPrintSummary(){
-  var btn=document.createElement('button');
-  btn.id='print-summary-btn';
-  btn.textContent='Print Case Summary';
-  btn.setAttribute('type','button');
-  btn.style.cssText='position:fixed;top:80px;right:30px;background:var(--bg-secondary);border:1px solid var(--accent);color:var(--accent);padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;z-index:198;box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:all 0.2s ease;';
-  document.body.appendChild(btn);
-  btn.addEventListener('click',function(){window.print()});
-  btn.addEventListener('mouseenter',function(){btn.style.background='var(--accent)';btn.style.color='#0f1117';});
-  btn.addEventListener('mouseleave',function(){btn.style.background='var(--bg-secondary)';btn.style.color='var(--accent)';});
-}
-
 function initNav(){
   var links=document.querySelectorAll('.nav-links a');
   var sections=document.querySelectorAll('.section');
@@ -59,6 +47,7 @@ function initNav(){
     document.getElementById(id).classList.add('active');
     window.scrollTo({top:0,behavior:'smooth'});
     sidebar.classList.remove('open');
+    initCTAVisibility();
   }
   links.forEach(function(l){l.addEventListener('click',function(e){navigate(e,l)})});
   toggle.addEventListener('click',function(){sidebar.classList.toggle('open')});
@@ -422,52 +411,12 @@ function initProgressBar(){
   });
 }
 
-function initShortcutsHint(){
-  var hint=document.createElement('div');
-  hint.className='shortcuts-hint';
-  hint.id='shortcuts-hint';
-  hint.innerHTML='<h4>Keyboard Shortcuts</h4>'+
-    '<div style="font-size:12px;color:var(--text-secondary);line-height:2;">'+
-    '<div>\u2191 / \u2193 Navigate sections</div>'+
-    '<div>Esc Close modal</div>'+
-    '<div>/ Focus search</div>'+
-    '<div>T Toggle menu</div>'+
-    '</div>';
-  document.body.appendChild(hint);
-  var toggle=document.createElement('button');
-  toggle.id='shortcuts-toggle';
-  toggle.setAttribute('type','button');
-  toggle.setAttribute('aria-label','Show keyboard shortcuts');
-  toggle.style.cssText='position:fixed;bottom:30px;left:30px;width:50px;height:50px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);font-size:20px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:199;opacity:0.7;transition:all 0.3s ease;';
-  toggle.textContent='?';
-  document.body.appendChild(toggle);
-  toggle.addEventListener('click',function(e){
-    e.stopPropagation();
-    hint.classList.toggle('visible');
-  });
-  toggle.addEventListener('mouseenter',function(){toggle.style.opacity='1';});
-  toggle.addEventListener('mouseleave',function(){toggle.style.opacity='0.7';});
-  document.addEventListener('keydown',function(e){
-    if(e.key==='/'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){
-      e.preventDefault();
-      var search=document.getElementById('evidence-search');
-      if(search){
-        var sections=document.querySelectorAll('.section');
-        sections.forEach(function(s){s.classList.remove('active')});
-        document.getElementById('evidence').classList.add('active');
-        document.querySelector('.nav-links a[href="#evidence"]').classList.add('active');
-        search.focus();
-      }
-    }else if(e.key.toLowerCase()==='t'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){
-      var tog=document.getElementById('menu-toggle');
-      if(tog)tog.click();
-    }else if(e.key==='Escape'){
-      hint.classList.remove('visible');
-    }
-  });
-  document.addEventListener('click',function(e){
-    if(!hint.contains(e.target)&&!toggle.contains(e.target)){
-      hint.classList.remove('visible');
-    }
-  });
+function initCTAVisibility(){
+  var ctaHome=document.getElementById('cta-home');
+  var ctaDashboard=document.getElementById('cta-dashboard');
+  var activeSection=document.querySelector('.section.active');
+  if(!activeSection) return;
+  var activeId=activeSection.id;
+  if(ctaHome) ctaHome.style.display = (activeId==='home') ? 'block' : 'none';
+  if(ctaDashboard) ctaDashboard.style.display = (activeId==='dashboard') ? 'inline-block' : 'none';
 }

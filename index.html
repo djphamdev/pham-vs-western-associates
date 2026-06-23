@@ -22,7 +22,7 @@
   </ul>
   <div class="nav-footer"><span class="confidential">CONFIDENTIAL</span><span class="nav-date">April 2026</span></div>
 </nav>
-<a href="mailto:donphamdev@gmail.com" class="case-contact-cta" title="Contact Don Pham to discuss this case">Discuss Case</a>
+<a href="mailto:donphamdev@gmail.com" class="case-contact-cta" id="cta-home" title="Contact Don Pham to discuss this case">Discuss Case</a>
 <button id="menu-toggle" aria-label="Toggle menu">☰</button>
 <main id="content">
 
@@ -30,35 +30,6 @@
   <div class="section-header">
     <h1>Ayako Yoshizawa Pham v. Western Associates Inc. &amp; Southern Star Services Ltd.</h1>
     <p class="subtitle">California National Origin Discrimination — Litigation Intake Summary</p>
-  </div>
-  <div class="case-strength-meter">
-    <h3>Case Strength Assessment</h3>
-    <div class="strength-bars">
-      <div class="strength-bar">
-        <div class="strength-label">Liability (FEHA §12940)</div>
-        <div class="strength-track"><div class="strength-fill" style="width:90%;background:var(--success);">Strong</div></div>
-      </div>
-      <div class="strength-bar">
-        <div class="strength-label">Comparator Evidence</div>
-        <div class="strength-track"><div class="strength-fill" style="width:95%;background:var(--success);">Very Strong</div></div>
-      </div>
-      <div class="strength-bar">
-        <div class="strength-label">Documentation Quality</div>
-        <div class="strength-track"><div class="strength-fill" style="width:85%;background:var(--success);">Strong</div></div>
-      </div>
-      <div class="strength-bar">
-        <div class="strength-label">Joint Employer Theory</div>
-        <div class="strength-track"><div class="strength-fill" style="width:70%;background:var(--warning);">Moderate</div></div>
-      </div>
-      <div class="strength-bar">
-        <div class="strength-label">Emotional Distress Damages</div>
-        <div class="strength-track"><div class="strength-fill" style="width:80%;background:var(--success);">Strong</div></div>
-      </div>
-      <div class="strength-bar">
-        <div class="strength-label">Procedural Posture (RTS)</div>
-        <div class="strength-track"><div class="strength-fill" style="width:100%;background:var(--success);">Complete</div></div>
-      </div>
-    </div>
   </div>
   <div class="card-grid">
     <div class="card card-highlight">
@@ -90,19 +61,6 @@
         <li><strong>Imminent Closure Risk:</strong> Southern Star Services is expected to close around June 2026. Immediate litigation/discovery preservation is urgent.</        <li><strong>Joint Employer Theory:</strong> Western Associates Inc. (Japan) exerted operational control over the California entity.</li>
         <li><strong>245+ Evidentiary Items:</strong> Emails, LINE messages, timesheets, and performance records are pre-assembled and cataloged.</li>
       </ul>
-    </div>
-    <div class="card">
-      <h3>Quick Case Facts</h3>
-      <div class="quick-facts">
-        <div class="quick-fact"><span class="qf-num">2019</span><span class="qf-label">Plaintiff Hired</span></div>
-        <div class="quick-fact"><span class="qf-num">2</span><span class="qf-label">Employees in Role</span></div>
-        <div class="quick-fact"><span class="qf-num">245+</span><span class="qf-label">Source Documents</span></div>
-        <div class="quick-fact"><span class="qf-num">44</span><span class="qf-label">Japanese-text Items</span></div>
-        <div class="quick-fact"><span class="qf-num">2</span><span class="qf-label">Defendants</span></div>
-        <div class="quick-fact"><span class="qf-num">1</span><span class="qf-label">CRD Case</span></div>
-        <div class="quick-fact"><span class="qf-num">RTS</span><span class="qf-label">Issued</span></div>
-        <div class="quick-fact"><span class="qf-num">June 26</span><span class="qf-label">SSS Closure</span></div>
-      </div>
     </div>
     <div class="card card-contact">
       <h3>Case Presenter</h3>
@@ -171,6 +129,7 @@
       <li><strong>PPP Loan Application</strong> (Southern Star Services — BCJ and WAI makeup)</li>
     </ul>
   </div>
+  <button id="print-summary-btn" class="btn btn-primary" style="margin-top:24px;" type="button" onclick="window.print()">Print Case Summary</button>
 </section>
 
 
@@ -192,6 +151,7 @@
 <section id="dashboard" class="section">
   <div class="section-header"><h2>Attorney Dashboard</h2><p class="subtitle">Single-page case evaluation summary</p></div>
   <div class="dashboard-grid" id="dashboard-content"></div>
+  <a href="mailto:donphamdev@gmail.com" class="case-contact-cta" id="cta-dashboard" title="Contact Don Pham to discuss this case" style="display:inline-block;margin-top:24px;">Discuss Case</a>
 </section>
 
 </main>
