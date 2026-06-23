@@ -234,6 +234,27 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 }
 
 /* ============================================================
+   TRANSLATION HELP BANNER
+   ============================================================ */
+.translation-help-banner {
+  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(96,165,250,0.1));
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.translation-help-banner strong {
+  color: var(--warning);
+}
+.translation-help-banner span {
+  display: block;
+  margin-top: 4px;
+}
+
+/* ============================================================
    EVIDENCE CARD IMPROVEMENTS
    ============================================================ */
 .evidence-card {
@@ -245,11 +266,19 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
   right: 8px;
   background: var(--warning);
   color: #0f1117;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 3px;
   text-transform: uppercase;
+  z-index: 5;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+.evidence-card .japanese-badge:hover {
+  background: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(96,165,250,0.4);
 }
 
 /* ============================================================

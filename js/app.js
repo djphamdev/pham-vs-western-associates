@@ -215,8 +215,10 @@ function renderEvidence(){
   }
   g.innerHTML=filtered.map(function(e){
     var jaBadge='';
-    if(hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr)){
-      jaBadge='<span class="japanese-badge">JP</span>';
+    var hasJa=hasJapanese(e.t)||hasJapanese(e.s)||hasJapanese(e.ocr);
+    if(hasJa){
+      var ocrSnippet=e.ocr?e.ocr.substring(0,500).replace(/\n/g,' ').replace(/"/g,'&quot;'):'';
+      jaBadge='<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="japanese-badge" style="text-decoration:none;cursor:pointer;" title="Click to translate OCR text with Google Translate" onclick="event.stopPropagation();">🇯🇵 JP · Translate</a>';
     }
     var t=evSearch?highlightText(e.t,evSearch):e.t;
     var s=evSearch?highlightText(e.s,evSearch):e.s;
