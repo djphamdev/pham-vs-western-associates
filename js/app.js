@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar()});
+document.addEventListener('DOMContentLoaded',function(){initNav();initTimeline();initComparator();initEvidence();initParent();initDistress();initDamages();initDashboard();initModal();initBackToTop();initJumpMenu();initKeyboardNav();initProgressBar();handleDeepLink()});
 
 
 function initTopEvidence(){
@@ -61,8 +61,9 @@ function initTimeline(){
   var c=document.getElementById('timeline-container');
   var btns=document.querySelectorAll('.filter-btn');
   c.innerHTML=CASE_DATA.timeline.map(function(ev){
-    var fileBtn=ev.file?'<a href="'+ev.file+'" target="_blank" class="btn btn-sm" style="margin-top:8px;">View Evidence</a>':'';
-    return'<div class="timeline-item" data-category="'+ev.cat+'"><div class="timeline-date">'+fmtDate(ev.date)+'</div><div class="timeline-title">'+ev.title+'</div><div class="timeline-desc">'+ev.desc+'</div><div class="timeline-tags">'+ev.tags.map(function(t){return'<span class="timeline-tag">'+t+'</span>'}).join('')+'</div>'+fileBtn+'</div>';
+    var fileBtn=ev.file?'<a href="'+ev.file+'" target="_blank" class="btn btn-sm" style="margin-top:8px;display:inline-block;">View Evidence</a>':'';
+    var id='timeline-'+(ev.date||'').replace(/[^a-zA-Z0-9]/g,'-');
+    return'<div class="timeline-item" id="'+id+'" data-category="'+ev.cat+'" data-date="'+ev.date+'"><div class="timeline-date">'+fmtDate(ev.date)+'</div><div class="timeline-title">'+ev.title+'</div><div class="timeline-desc">'+ev.desc+'</div><div class="timeline-tags">'+ev.tags.map(function(t){return'<span class="timeline-tag">'+t+'</span>'}).join('')+'</div>'+fileBtn+'<a href="#'+id+'" class="btn btn-sm" style="margin-top:6px;display:inline-block;background:var(--bg-tertiary);color:var(--text-primary);" onclick="copyDeepLink(event,\'#'+id+'\')" title="Copy direct link to this timeline event">🔗 Copy Link</a></div>';
   }).join('');
   btns.forEach(function(b){
     b.addEventListener('click',function(){
@@ -102,6 +103,67 @@ function initComparator(){
 }
 
 var evFilter='all',evSearch='';
+
+// Deep link helper - copy direct link to clipboard
+function copyDeepLink(e,hash){
+  e.preventDefault();
+  e.stopPropagation();
+  var url=window.location.origin+window.location.pathname+hash;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){
+      showLinkCopied(e.target);
+    }).catch(function(){
+      fallbackCopy(url);
+      showLinkCopied(e.target);
+    });
+  }else{
+    fallbackCopy(url);
+    showLinkCopied(e.target);
+  }
+  return false;
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+function showLinkCopied(el){
+  var orig=el.textContent;
+  el.textContent='✓ Copied!';
+  el.style.color='var(--success)';
+  setTimeout(function(){el.textContent=orig;el.style.color='';},1800);
+}
+
+// Handle deep-link navigation on page load
+function handleDeepLink(){
+  var hash=window.location.hash;
+  if(!hash||hash.length<2)return;
+  var id=hash.substring(1);
+  var el=document.getElementById(id);
+  if(!el)return;
+  // Find which section contains it
+  var section=el.closest('.section');
+  if(section){
+    var links=document.querySelectorAll('.nav-links a');
+    links.forEach(function(a){a.classList.remove('active')});
+    document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+    section.classList.add('active');
+    var navLink=document.querySelector('.nav-links a[href="#'+section.id+'"]');
+    if(navLink)navLink.classList.add('active');
+    setTimeout(function(){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.style.outline='2px solid var(--accent)';
+      setTimeout(function(){el.style.outline='';},3000);
+    },100);
+  }
+}
+window.addEventListener('hashchange',handleDeepLink);
+
 function initSearchSuggestions(){
   var search=document.getElementById('evidence-search');
   var suggestions=document.getElementById('search-suggestions');
@@ -246,12 +308,9 @@ function renderEvidence(){
       var ocrSnippet=e.ocr?e.ocr.substring(0,500).replace(/\n/g,' ').replace(/"/g,'&quot;'):'';
       jaBadge='<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="japanese-badge" style="text-decoration:none;cursor:pointer;" title="Click to translate OCR text with Google Translate" onclick="event.stopPropagation();">🇯🇵 JP · Translate</a>';
     }
-    // Build the raw GitHub URL for image translation
-    var rawImgUrl=e.f?'https://raw.githubusercontent.com/djphamdev/pham-vs-western-associates/main/'+e.f.replace(/docs\//,'').replace(/ /g,'%20'):'';
-    var imageTranslateUrl=e.f?'https://translate.yandex.com/en/ocr?url='+encodeURIComponent(rawImgUrl):'';
     var t=evSearch?highlightText(e.t,evSearch):e.t;
     var s=evSearch?highlightText(e.s,evSearch):e.s;
-    return'<div class="evidence-card" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+s+'</div><div class="ev-tags">'+e.tags.map(function(tg){return'<span class="ev-tag">'+tg+'</span>'}).join('')+'</div><div class="ev-actions"><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source</a>'+(e.f?'<a href="'+imageTranslateUrl+'" target="_blank" rel="noopener" class="ev-translate-link" onclick="event.stopPropagation();" title="Open image in Yandex Translate (free image translation/OCR)">🌐 Translate Image</a>':'')+'</div></div>';
+    return'<div class="evidence-card" id="evidence-'+e.id+'" data-id="'+e.id+'">'+jaBadge+'<div class="ev-title">'+t+'</div><div class="ev-date">'+e.d+' &middot; '+e.cat+'</div><div class="ev-summary">'+s+'</div><div class="ev-tags">'+e.tags.map(function(tg){return'<span class="ev-tag">'+tg+'</span>'}).join('')+'</div><div class="ev-actions"><a href="'+e.f+'" target="_blank" class="ev-direct-link" onclick="event.stopPropagation()">View Source</a><a href="#evidence-'+e.id+'" class="ev-direct-link ev-copy-link" onclick="copyDeepLink(event,\'#evidence-'+e.id+'\')" title="Copy direct link to this evidence card">🔗 Copy Link</a></div></div>';
   }).join('');
   g.querySelectorAll('.evidence-card').forEach(function(card){
     card.addEventListener('click',function(){
@@ -264,13 +323,12 @@ function renderEvidence(){
 function showModal(ev){
   var modal=document.getElementById('evidence-modal');
   var body=document.getElementById('modal-body');
-  var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;">Open File on GitHub</a><a href="'+imageTranslateUrl+'" target="_blank" rel="noopener" class="btn" style="display:inline-block;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);">🖼 Translate Image</a></div><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
+  var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;">Open File on GitHub</a></div><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
   var translationBlock=ev.translation?'<div class="translation-block"><h4>TRANSLATION NOTES (Japanese &rarr; English)</h4><div class="translation-content">'+ev.translation.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>':'';
   var ocrId='ocr-block-'+ev.id.replace(/[^a-zA-Z0-9]/g,'');
   var hasJaContent=hasSignificantJapanese(ev.t)||hasSignificantJapanese(ev.s)||hasSignificantJapanese(ev.ocr);
   var ocrSnippet=ev.ocr?ev.ocr.substring(0,500).replace(/\n/g,' '):'';
   var googleTranslateLink=hasJaContent?'<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="btn btn-sm" style="background:var(--accent);color:#0f1117;border-color:var(--accent);font-weight:600;margin-left:8px;">🌐 Translate OCR with Google</a>':'';
-  var imageTranslateUrl=ev.f?'https://translate.yandex.com/en/ocr?url='+encodeURIComponent('https://raw.githubusercontent.com/djphamdev/pham-vs-western-associates/main/'+ev.f.replace(/docs\//,'').replace(/ /g,'%20')):'';
   var ocrBlock=ev.ocr?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div class="ocr-header"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin:0;">OCR Text Extraction (Japanese/English)</h4><div><button class="lang-toggle" data-ocr-id="'+ocrId+'">Open Full View</button>'+googleTranslateLink+'</div></div><pre id="'+ocrId+'" style="font-family:monospace;font-size:12px;color:var(--text-secondary);background:var(--bg-primary);padding:10px;border-radius:4px;white-space:pre-wrap;overflow-x:hidden;max-height:250px;overflow-y:auto;border:1px solid var(--border-light);">'+ev.ocr.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>':'';
   var relatedLink=ev.related?'<div style="margin-top:12px;"><strong style="color:var(--accent);">Related Evidence:</strong> <a href="'+ev.related+'" target="_blank" style="font-size:13px;">View Follow-up Document</a></div>':'';
   body.innerHTML='<h2 style="font-size:18px;margin-bottom:8px;">'+ev.t+'</h2><p style="color:var(--accent);font-size:13px;margin-bottom:16px;">'+ev.d+' &middot; '+ev.cat+'</p><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Summary</h4><p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">'+ev.s+'</p>'+relatedLink+'</div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Participants</h4><p style="font-size:14px;color:var(--text-secondary);">'+ev.p.join(', ')+'</p></div><div style="margin-bottom:16px;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">Tags</h4><div style="display:flex;gap:4px;flex-wrap:wrap;">'+ev.tags.map(function(t){return'<span class="ev-tag">'+t+'</span>'}).join('')+'</div></div>'+translationBlock+ocrBlock+fileLink;
@@ -316,20 +374,58 @@ function initModal(){
 
 function initParent(){
   var c=document.getElementById('parent-content');
+  var p=CASE_DATA.parentCompany;
+  var wai=p.waiInfo||{};
+
+  // Organizational structure
   var org=document.createElement('div');
   org.className='card';
-  org.innerHTML='<h3>Organizational Structure</h3><div class="org-chart">'+CASE_DATA.parentCompany.structure.map(function(item,i){
+  org.innerHTML='<h3>Organizational Structure</h3><div class="org-chart">'+p.structure.map(function(item,i){
     return(i>0?'<div class="org-line"></div>':'')+'<div class="org-node '+(item.highlight?'highlight':'')+'"><h4>'+item.entity+'</h4><p>'+item.role+'</p></div>';
   }).join('')+'</div>';
+  c.appendChild(org);
+
+  // Reporting chain
   var rc=document.createElement('div');
   rc.className='card';
-  rc.innerHTML='<h3>Reporting Chain</h3><ul class="fact-list">'+CASE_DATA.parentCompany.reportingChain.map(function(item){return'<li>'+item+'</li>'}).join('')+'</ul>';
-  c.appendChild(org);
+  rc.innerHTML='<h3>Reporting Chain &amp; Control Evidence</h3><ul class="fact-list">'+p.reportingChain.map(function(item){return'<li>'+item+'</li>'}).join('')+'</ul>';
   c.appendChild(rc);
+
+  // WAI company profile card with all the external links
+  var waiCard=document.createElement('div');
+  waiCard.className='card';
+  waiCard.style.gridColumn='1 / -1';
+  waiCard.innerHTML='<h3>Western Associates Inc. (WAI) — Japan Parent Company Profile</h3>'+
+    '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">'+
+    'WAI is a real, established Japanese aviation/logistics company with operational control over SSS. Below are independent third-party verifications of WAI\'s corporate identity, multi-office Japan presence, industry standing, and the formal subsidiary relationship with SSS.</p>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:12px;">'+
+      '<a href="'+wai.mainWebsite+'" target="_blank" rel="noopener" class="wai-link"><strong>WAI Main Website</strong><br><span class="link-url">wai.co.jp</span></a>'+
+      '<a href="'+wai.subsidiaryDirectory+'" target="_blank" rel="noopener" class="wai-link"><strong>WAI Company Page (Related Companies list)</strong><br><span class="link-url">wai.co.jp/company/</span> <em style="color:var(--warning);">— SSS listed here as "Related Company"</em></a>'+
+      '<a href="'+wai.jbAA+'" target="_blank" rel="noopener" class="wai-link"><strong>Japan Business Aviation Association — Member Directory</strong><br><span class="link-url">jbaa.org/en/member/</span> <em style="color:var(--accent);">— WAI listed under "Operation Support"</em></a>'+
+      '<a href="'+wai.zoominfo+'" target="_blank" rel="noopener" class="wai-link"><strong>ZoomInfo Company Profile — Western Associates Inc.</strong><br><span class="link-url">zoominfo.com</span></a>'+
+      '<a href="'+wai.aichiBranch+'" target="_blank" rel="noopener" class="wai-link"><strong>D&amp;B Business Directory — Aichi Branch</strong><br><span class="link-url">dnb.com (Aichi)</span></a>'+
+      '<a href="'+wai.osakaBranch+'" target="_blank" rel="noopener" class="wai-link"><strong>D&amp;B Business Directory — Osaka Branch</strong><br><span class="link-url">dnb.com (Osaka)</span></a>'+
+    '</div>';
+  c.appendChild(waiCard);
+
+  // Operational link evidence card
+  var linkCard=document.createElement('div');
+  linkCard.className='card';
+  linkCard.style.gridColumn='1 / -1';
+  linkCard.innerHTML='<h3>WAI–SSS Operational Link Documentation</h3>'+
+    '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">Independent documents that establish the WAI–SSS business relationship and joint operational control — important for the joint employer theory under FEHA.</p>'+
+    '<ul class="fact-list">'+
+      '<li><strong>PPP Loan Application — Southern Star Services</strong> (Makeup of BCJ and WAI): filed with U.S. Small Business Administration. Demonstrates SSS was financially backed and operationally directed by WAI and a WAI-related entity (BCJ). Available in the local evidence store.</li>'+
+      '<li><strong>2019 Vietnam Airlines × Western Associates Year-End Party</strong> (Japan): public procurement document showing WAI hosted parties in Japan celebrating the Vietnam Airlines / WAI cargo relationship — direct evidence of WAI\'s role in the VN099 business that Ayako was assigned. <a href="'+wai.vietnamAirlinesPartyDoc+'" target="_blank" rel="noopener">View document ↗</a></li>'+
+      '<li><strong>Southern Star Services public website</strong> (designed pro bono by Don Pham, plaintiff\'s husband): <a href="'+wai.southernStarWebsite+'" target="_blank" rel="noopener">southernstars.us ↗</a> — illustrates the SSS public-facing business at the time of Ayako\'s employment.</li>'+
+    '</ul>';
+  c.appendChild(linkCard);
+
+  // Key findings
   var fg=document.createElement('div');
   fg.className='card-grid';
   fg.style.gridColumn='1 / -1';
-  fg.innerHTML='<h3 style="grid-column:1/-1;font-size:16px;font-weight:600;margin-bottom:8px;">Key Findings</h3>'+CASE_DATA.parentCompany.keyFindings.map(function(f){
+  fg.innerHTML='<h3 style="grid-column:1/-1;font-size:16px;font-weight:600;margin-bottom:8px;">Key Findings</h3>'+p.keyFindings.map(function(f){
     return'<div class="card"><h3>'+f.title+'</h3><p style="font-size:13px;color:var(--text-secondary);line-height:1.6;">'+f.desc+'</p></div>';
   }).join('');
   c.appendChild(fg);
@@ -415,10 +511,9 @@ function buildLitigationTools(){
   
   html+='<div class="dashboard-card"><h3>🔗 Quick Reference Links</h3>';
   html+='<div class="dash-item"><strong>FEHA §12940:</strong> <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=GOV&sectionNum=12940" target="_blank">California Fair Employment and Housing Act</a></div>';
-  html+='<div class="dash-item"><strong>CRD (DFEH):</strong> <a href="https://calcivilrights.ca.gov/" target="_blank">Civil Rights Department</a></div>';
-  html+='<div class="dash-item"><strong>Joint Employer:</strong> <a href="https://www.dol.gov/agencies/whd/fact-sheets/46-joint-employment" target="_blank">DOL Joint Employer Standard</a></div>';
   html+='<div class="dash-item"><strong>Google Drive:</strong> <a href="https://drive.google.com/drive/folders/1CJOcD0EBi4aH5IV2SbcZsEMtMlpxJhhZ?usp=sharing" target="_blank">Full Document Library</a></div>';
-  html+='<div class="dash-item"><strong>GitHub Repo:</strong> <a href="https://github.com/djphamdev/pham-vs-western-associates" target="_blank">pham-vs-western-associates</a></div>';
+  html+='<div class="dash-item"><strong>SSS Website</strong> (designed pro bono by Don Pham): <a href="https://www.southernstars.us/" target="_blank">southernstars.us</a></div>';
+  html+='<div class="dash-item"><strong>WAI Company Page</strong> (lists SSS as Related Company): <a href="https://www.wai.co.jp/company/index.php" target="_blank">wai.co.jp/company/</a></div>';
   html+='</div>';
   
   return html;

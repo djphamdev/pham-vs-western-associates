@@ -100,8 +100,6 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 .ev-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--bg-tertiary);color:var(--text-muted);border:1px solid var(--border)}
 .ev-direct-link{align-self:flex-start;font-size:11px;padding:4px 10px;background:var(--accent-dim);color:var(--accent);border-radius:4px;text-decoration:none;border:1px solid transparent;transition:all 0.15s;display:inline-block;font-weight:600}
 .ev-direct-link:hover{background:var(--accent);color:#0f1117;text-decoration:none}
-.ev-translate-link{align-self:flex-start;font-size:11px;padding:4px 10px;background:var(--bg-tertiary);color:var(--text-primary);border-radius:4px;text-decoration:none;border:1px solid var(--border);transition:all 0.15s;display:inline-block;font-weight:600;margin-left:6px}
-.ev-translate-link:hover{background:var(--accent-dim);color:var(--accent);border-color:var(--accent);text-decoration:none}
 .ev-actions{display:flex;flex-wrap:wrap;gap:0;margin-top:auto;padding-top:8px}
 .modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;display:flex;align-items:center;justify-content:center}
 .modal.hidden{display:none}
@@ -583,30 +581,184 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 }
 
 /* ============================================================
+   WAI LINK CARDS
+   ============================================================ */
+.wai-link {
+  display: block;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.4;
+  transition: all 0.2s ease;
+}
+.wai-link strong {
+  color: var(--accent);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.wai-link .link-url {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.wai-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.wai-link em {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {
-  #sidebar, #menu-toggle, #back-to-top, #section-jump-menu, 
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+  /* Hide all UI chrome and floating elements */
+  #sidebar, #menu-toggle, #back-to-top, #section-jump-menu,
   #section-jump-toggle, #shortcuts-hint, #shortcuts-toggle,
-  #reading-progress, .case-contact-cta {
+  #reading-progress, .case-contact-cta, .module-footer,
+  .translation-help-banner, .ev-actions, .ev-direct-link,
+  .ev-translate-link, .japanese-badge, .filter-btn,
+  .tag-filters, .search-wrapper, #search-suggestions,
+  .evidence-controls, .evidence-stats, .modal,
+  .translation-viewer, button, .btn {
     display: none !important;
   }
   #content {
     margin-left: 0 !important;
     padding: 0 !important;
+    max-width: 100% !important;
   }
+  /* Show only the Executive Summary, Timeline, Comparator, Parent Company, Distress, Damages, and Attorney Dashboard */
   .section {
     display: block !important;
     page-break-after: always;
   }
+  /* COMPLETELY HIDE the Evidence Library - too long to print */
+  #evidence {
+    display: none !important;
+  }
+  /* Black & white body */
   body {
     background: white !important;
     color: black !important;
+    font-size: 11pt;
   }
-  .card {
-    border: 1px solid #ccc !important;
+  /* All cards: white background with stroked border (no toner-heavy dark fills) */
+  .card, .dashboard-card, .timeline-item, .comparator-card,
+  .stat-item, .org-node, .evidence-card {
     background: white !important;
+    background-color: white !important;
+    border: 1px solid #000 !important;
+    color: black !important;
     box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* All headings, text, links black */
+  h1, h2, h3, h4, h5, h6, p, span, div, li, td, th, strong, em {
+    color: black !important;
+  }
+  a {
+    color: black !important;
+    text-decoration: underline;
+  }
+  /* Remove dark backgrounds from anything */
+  .card-highlight, .card-contact, .tag, .badge,
+  .timeline-tag, .ev-tag, .ev-direct-link, .ev-translate-link {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #000 !important;
+  }
+  /* Section headers: bottom border only, no fill */
+  .section-header {
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 10pt !important;
+    margin-bottom: 16pt !important;
+  }
+  .section-header h1, .section-header h2 {
+    color: black !important;
+  }
+  /* Comparison table */
+  .comparison-table th, .comparison-table td {
+    border: 1px solid #000 !important;
+    color: black !important;
+    background: white !important;
+  }
+  /* Timeline - stroke-only */
+  .timeline::before {
+    background: #000 !important;
+  }
+  .timeline-item::before {
+    background: white !important;
+    border: 2px solid #000 !important;
+  }
+  /* Org chart nodes - outlined */
+  .org-line {
+    background: #000 !important;
+  }
+  /* Comparator card side borders */
+  .comparator-card.plaintiff {
+    border-left: 3px solid #000 !important;
+  }
+  .comparator-card.comparator {
+    border-left: 3px solid #000 !important;
+  }
+  /* Strip all gradients, shadows, fancy effects */
+  * {
+    background-image: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+  /* Force page breaks before each major section (except first) */
+  #timeline, #comparator, #parent, #distress, #damages, #dashboard {
+    page-break-before: always;
+  }
+  /* Prevent page break inside important elements */
+  .timeline-item, .card, .dashboard-card, .comparator-card {
+    page-break-inside: avoid;
+  }
+  /* Timeline: only show first ~8 events for print brevity */
+  .timeline-item:nth-child(n+9) {
+    display: none !important;
+  }
+  /* Print URL after links */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+  }
+  /* No need for URL after internal anchor links */
+  a[href^="#"]::after,
+  a[href^="mailto:"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+  /* Print header on each page */
+  @page {
+    @top-center {
+      content: "Pham v. Western Associates — Confidential Case Summary";
+      font-size: 9pt;
+      color: #555;
+    }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 9pt;
+      color: #555;
+    }
   }
 }
 
