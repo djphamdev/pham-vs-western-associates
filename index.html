@@ -184,5 +184,24 @@
 
 <script src="js/data.js?v=20260623"></script>
 <script src="js/app.js?v=20260623"></script>
+
+<!-- Tesseract.js for in-site OCR (added by jp-detection cron pass 2) -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+// In-site OCR - actually runs OCR on images in the browser
+async function ocrImageInBrowser(url, langs){
+  langs = langs || ['jpn','eng'];
+  try{
+    const worker = await Tesseract.createWorker(langs);
+    const ret = await worker.recognize(url);
+    await worker.terminate();
+    return ret.data.text;
+  }catch(e){
+    return null;
+  }
+}
+window.ocrImageInBrowser = ocrImageInBrowser;
+</script>
+
 </body>
 </html>

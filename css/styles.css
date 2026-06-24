@@ -775,3 +775,19 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
   border-radius: 4px;
   letter-spacing: 0.5px;
 }
+
+/* jp-detection verification (added by cron pass 3) */
+.jp-verified-card {
+  box-shadow: 0 0 0 1px var(--success);
+}
+.jp-verified-badge {
+  display: inline-block;
+  background: var(--success);
+  color: #0f1117;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+  cursor: help;
+}
