@@ -155,6 +155,8 @@ function handleDeepLink(){
     section.classList.add('active');
     var navLink=document.querySelector('.nav-links a[href="#'+section.id+'"]');
     if(navLink)navLink.classList.add('active');
+    // Mark section as visited - highlights it for 1 minute
+    markSectionVisited(section.id);
     setTimeout(function(){
       el.scrollIntoView({behavior:'smooth',block:'center'});
       el.style.outline='2px solid var(--accent)';
@@ -163,6 +165,67 @@ function handleDeepLink(){
   }
 }
 window.addEventListener('hashchange',handleDeepLink);
+
+// Generic copy to clipboard helper
+function copyToClipboard(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(text);
+  }
+  // Fallback
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
+// Copy section link to clipboard
+function copySectionLink(e,sectionId){
+  e.preventDefault();
+  e.stopPropagation();
+  var url=window.location.origin+window.location.pathname+'#'+sectionId;
+  copyToClipboard(url);
+  var icon=e.currentTarget;
+  var orig=icon.innerHTML;
+  icon.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M13.5 4.5L6 12L2.5 8.5L3.91 7.09L6 9.17L12.09 3.09L13.5 4.5Z"/></svg>';
+  icon.classList.add('copied');
+  setTimeout(function(){
+    icon.innerHTML=orig;
+    icon.classList.remove('copied');
+  },1500);
+  return false;
+}
+
+// Mark a section as visited (highlighted for 1 minute)
+function markSectionVisited(sectionId){
+  var section=document.getElementById(sectionId);
+  if(!section)return;
+  var icon=document.querySelector('.section-link-icon[data-section="'+sectionId+'"]');
+  // Add visited class for 1 minute (60000ms)
+  section.classList.add('visited-link');
+  if(icon)icon.classList.add('visited');
+  setTimeout(function(){
+    section.classList.remove('visited-link');
+    if(icon)icon.classList.remove('visited');
+  },60000);
+}
+
+// Hook: when user clicks any section link icon or nav link, mark as visited
+document.addEventListener('click',function(e){
+  var navLink=e.target.closest('.nav-links a[href^="#"]');
+  if(navLink){
+    var sid=navLink.getAttribute('href').substring(1);
+    markSectionVisited(sid);
+  }
+  var secIcon=e.target.closest('.section-link-icon');
+  if(secIcon){
+    markSectionVisited(secIcon.dataset.section);
+  }
+});
 
 function initSearchSuggestions(){
   var search=document.getElementById('evidence-search');
@@ -231,7 +294,7 @@ function renderTagFilters(){
   var c=document.getElementById('tag-filters');
   var tags=[];
   CASE_DATA.evidence.forEach(function(e){e.tags.forEach(function(t){if(tags.indexOf(t)===-1)tags.push(t)})});
-  var jaSignificant=CASE_DATA.evidence.filter(function(e){return hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr)}).length;
+  var jaSignificant=CASE_DATA.evidence.filter(function(e){return isItemJapanese(e)}).length;
   var translatedCount=CASE_DATA.evidence.filter(function(e){return e.translation}).length;
   var translateableCount=CASE_DATA.evidence.filter(function(e){
     if(!e.f)return false;
@@ -273,6 +336,13 @@ function hasSignificantJapanese(text){
   return jaChars>20||ratio>0.05;
 }
 
+// Combined check: jaVerified flag OR actual significant Japanese content
+function isItemJapanese(item){
+  if(item.jaVerified===true)return true;
+  if(item.jaVerified===false)return false; // explicitly false
+  return hasSignificantJapanese(item.t)||hasSignificantJapanese(item.s)||hasSignificantJapanese(item.ocr);
+}
+
 function highlightText(text, search){
   if(!search||!text)return text;
   var regex=new RegExp('('+search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
@@ -284,7 +354,7 @@ function renderEvidence(){
   var filtered=CASE_DATA.evidence.filter(function(e){
     var mt=true;
     if(evFilter==='__japanese__'){
-      mt=hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr);
+      mt=isItemJapanese(e);
     }else if(evFilter==='__translated__'){
       mt=!!e.translation;
     }else if(evFilter==='__translateable__'){
@@ -303,7 +373,7 @@ function renderEvidence(){
   }
   g.innerHTML=filtered.map(function(e){
     var jaBadge='';
-    var hasJa=hasSignificantJapanese(e.t)||hasSignificantJapanese(e.s)||hasSignificantJapanese(e.ocr);
+    var hasJa=isItemJapanese(e);
     if(hasJa){
       var ocrSnippet=e.ocr?e.ocr.substring(0,500).replace(/\n/g,' ').replace(/"/g,'&quot;'):'';
       jaBadge='<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="japanese-badge" style="text-decoration:none;cursor:pointer;" title="Click to translate OCR text with Google Translate" onclick="event.stopPropagation();">🇯🇵 JP · Translate</a>';
@@ -326,7 +396,7 @@ function showModal(ev){
   var fileLink=ev.f?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Source File (GitHub Repository)</h4><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><a href="'+ev.f+'" target="_blank" class="btn btn-primary" style="display:inline-block;">Open File on GitHub</a></div><p style="font-size:11px;color:var(--text-muted);word-break:break-all;">'+decodeURIComponent(ev.f).split('/').pop()+'</p></div>':'';
   var translationBlock=ev.translation?'<div class="translation-block"><h4>TRANSLATION NOTES (Japanese &rarr; English)</h4><div class="translation-content">'+ev.translation.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>':'';
   var ocrId='ocr-block-'+ev.id.replace(/[^a-zA-Z0-9]/g,'');
-  var hasJaContent=hasSignificantJapanese(ev.t)||hasSignificantJapanese(ev.s)||hasSignificantJapanese(ev.ocr);
+  var hasJaContent=isItemJapanese(ev);
   var ocrSnippet=ev.ocr?ev.ocr.substring(0,500).replace(/\n/g,' '):'';
   var googleTranslateLink=hasJaContent?'<a href="https://translate.google.com/?sl=ja&tl=en&text='+encodeURIComponent(ocrSnippet)+'" target="_blank" rel="noopener" class="btn btn-sm" style="background:var(--accent);color:#0f1117;border-color:var(--accent);font-weight:600;margin-left:8px;">🌐 Translate OCR with Google</a>':'';
   var ocrBlock=ev.ocr?'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div class="ocr-header"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin:0;">OCR Text Extraction (Japanese/English)</h4><div><button class="lang-toggle" data-ocr-id="'+ocrId+'">Open Full View</button>'+googleTranslateLink+'</div></div><pre id="'+ocrId+'" style="font-family:monospace;font-size:12px;color:var(--text-secondary);background:var(--bg-primary);padding:10px;border-radius:4px;white-space:pre-wrap;overflow-x:hidden;max-height:250px;overflow-y:auto;border:1px solid var(--border-light);">'+ev.ocr.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>':'';
@@ -415,7 +485,7 @@ function initParent(){
   linkCard.innerHTML='<h3>WAI–SSS Operational Link Documentation</h3>'+
     '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">Independent documents that establish the WAI–SSS business relationship and joint operational control — important for the joint employer theory under FEHA.</p>'+
     '<ul class="fact-list">'+
-      '<li><strong>PPP Loan Application — Southern Star Services</strong> (Makeup of BCJ and WAI): filed with U.S. Small Business Administration. Demonstrates SSS was financially backed and operationally directed by WAI and a WAI-related entity (BCJ). Available in the local evidence store.</li>'+
+      '<li><strong><a href="'+wai.pppLoanAppUrl+'" target="_blank" rel="noopener">PPP Loan Application — Southern Star Services</a></strong> (Makeup of BCJ and WAI): filed with U.S. Small Business Administration. Demonstrates SSS was financially backed and operationally directed by WAI and a WAI-related entity (BCJ). <a href="'+wai.pppLoanAppUrl+'" target="_blank" rel="noopener">View PDF ↗</a></li>'+
       '<li><strong>2019 Vietnam Airlines × Western Associates Year-End Party</strong> (Japan): public procurement document showing WAI hosted parties in Japan celebrating the Vietnam Airlines / WAI cargo relationship — direct evidence of WAI\'s role in the VN099 business that Ayako was assigned. <a href="'+wai.vietnamAirlinesPartyDoc+'" target="_blank" rel="noopener">View document ↗</a></li>'+
       '<li><strong>Southern Star Services public website</strong> (designed pro bono by Don Pham, plaintiff\'s husband): <a href="'+wai.southernStarWebsite+'" target="_blank" rel="noopener">southernstars.us ↗</a> — illustrates the SSS public-facing business at the time of Ayako\'s employment.</li>'+
     '</ul>';
