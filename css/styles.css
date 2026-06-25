@@ -659,8 +659,7 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
    CLICKED-SECTION HIGHLIGHT (1 min after deep link visit)
    ============================================================ */
 .section.visited-link {
-  box-shadow: inset 0 0 0 3px var(--accent);
-  transition: box-shadow 0.3s ease;
+  box-shadow: none;
 }
 .section-link-icon.visited {
   background: var(--accent);
